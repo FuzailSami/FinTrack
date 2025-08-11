@@ -16,11 +16,11 @@ export default function Landing() {
           </p>
           <Button 
             size="lg" 
-            className="text-lg px-8 py-3" 
+            className="text-lg px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200" 
             onClick={() => window.location.href = "/api/login"}
             data-testid="button-login"
           >
-            Get Started
+            🚀 Get Started Free
           </Button>
         </div>
 
@@ -87,11 +87,11 @@ export default function Landing() {
             <CardContent>
               <Button 
                 size="lg" 
-                className="text-lg px-8 py-3" 
+                className="text-lg px-12 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200" 
                 onClick={() => window.location.href = "/api/login"}
                 data-testid="button-login-bottom"
               >
-                Sign In to Get Started
+                🚀 Sign In to Get Started
               </Button>
             </CardContent>
           </Card>

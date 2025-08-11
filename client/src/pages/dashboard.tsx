@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { Plus, User } from "lucide-react";
+import { Plus, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 import DashboardCards from "@/components/dashboard-cards";
 import ExpenseChart from "@/components/expense-chart";
 import RecentTransactions from "@/components/recent-transactions";
 import TransactionHistory from "@/components/transaction-history";
 import AddTransactionModal from "@/components/add-transaction-modal";
+import type { User as UserType } from "@shared/schema";
 
 export default function Dashboard() {
   const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const { user } = useAuth() as { user: UserType | undefined };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,14 +40,29 @@ export default function Dashboard() {
                 <Plus className="w-4 h-4 mr-2" />
                 Add Transaction
               </Button>
-              <div className="relative">
+              
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user?.profileImageUrl || undefined} />
+                    <AvatarFallback>
+                      <User className="h-4 w-4" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm text-gray-700 hidden sm:block">
+                    {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                  </span>
+                </div>
+                
                 <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="w-8 h-8 bg-gray-200 rounded-full hover:bg-gray-300"
-                  data-testid="button-profile"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = "/api/logout"}
+                  className="text-gray-600 hover:text-gray-900"
+                  data-testid="button-logout"
                 >
-                  <User className="w-4 h-4 text-gray-600" />
+                  <LogOut className="w-4 h-4 mr-1" />
+                  <span className="hidden sm:inline">Logout</span>
                 </Button>
               </div>
             </div>

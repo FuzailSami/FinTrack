@@ -40,8 +40,10 @@ Preferred communication style: Simple, everyday language.
 - **Budgets**: Category-specific spending limits with monthly/yearly periods
 
 ### Authentication & Session Management
-- **Session Storage**: PostgreSQL-based session storage using connect-pg-simple
-- **Security**: Credential-based authentication with secure cookie handling
+- **Authentication**: Replit OpenID Connect integration with automatic user creation/login
+- **Session Storage**: PostgreSQL-based session storage using connect-pg-simple with secure cookies
+- **User Isolation**: All financial data is user-specific with database-level isolation
+- **Security**: Secure token handling with automatic refresh and proper logout flow
 
 ### Development & Deployment
 - **Development**: Concurrent client/server development with Vite middleware integration
