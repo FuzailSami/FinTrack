@@ -1,24 +1,41 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { insertTransactionSchema, insertCategorySchema, insertBudgetSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
   // Transaction routes
-  app.get("/api/transactions", async (req, res) => {
+  app.get("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
-      const transactions = await storage.getTransactions();
+      const userId = req.user.claims.sub;
+      const transactions = await storage.getTransactions(userId);
       res.json(transactions);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch transactions" });
     }
   });
 
-  app.get("/api/transactions/:id", async (req, res) => {
+  app.get("/api/transactions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const transaction = await storage.getTransaction(req.params.id);
+      const userId = req.user.claims.sub;
+      const transaction = await storage.getTransaction(req.params.id, userId);
       if (!transaction) {
         return res.status(404).json({ message: "Transaction not found" });
       }
@@ -28,10 +45,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/transactions", async (req, res) => {
+  app.post("/api/transactions", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validatedData = insertTransactionSchema.parse(req.body);
-      const transaction = await storage.createTransaction(validatedData);
+      const transaction = await storage.createTransaction(validatedData, userId);
       res.status(201).json(transaction);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -41,10 +59,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/transactions/:id", async (req, res) => {
+  app.put("/api/transactions/:id", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validatedData = insertTransactionSchema.partial().parse(req.body);
-      const transaction = await storage.updateTransaction(req.params.id, validatedData);
+      const transaction = await storage.updateTransaction(req.params.id, validatedData, userId);
       if (!transaction) {
         return res.status(404).json({ message: "Transaction not found" });
       }
@@ -57,9 +76,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/transactions/:id", async (req, res) => {
+  app.delete("/api/transactions/:id", isAuthenticated, async (req: any, res) => {
     try {
-      const deleted = await storage.deleteTransaction(req.params.id);
+      const userId = req.user.claims.sub;
+      const deleted = await storage.deleteTransaction(req.params.id, userId);
       if (!deleted) {
         return res.status(404).json({ message: "Transaction not found" });
       }
@@ -93,19 +113,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Budget routes
-  app.get("/api/budgets", async (req, res) => {
+  app.get("/api/budgets", isAuthenticated, async (req: any, res) => {
     try {
-      const budgets = await storage.getBudgets();
+      const userId = req.user.claims.sub;
+      const budgets = await storage.getBudgets(userId);
       res.json(budgets);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch budgets" });
     }
   });
 
-  app.post("/api/budgets", async (req, res) => {
+  app.post("/api/budgets", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const validatedData = insertBudgetSchema.parse(req.body);
-      const budget = await storage.createBudget(validatedData);
+      const budget = await storage.createBudget(validatedData, userId);
       res.status(201).json(budget);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -116,23 +138,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Analytics routes
-  app.get("/api/analytics/expenses-by-category", async (req, res) => {
+  app.get("/api/analytics/expenses-by-category", isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.claims.sub;
       const { startDate, endDate } = req.query;
       if (!startDate || !endDate) {
         return res.status(400).json({ message: "Start date and end date are required" });
       }
       
-      const expenses = await storage.getExpensesByCategory(startDate as string, endDate as string);
+      const expenses = await storage.getExpensesByCategory(startDate as string, endDate as string, userId);
       res.json(expenses);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch expense analytics" });
     }
   });
 
-  app.get("/api/analytics/dashboard-stats", async (req, res) => {
+  app.get("/api/analytics/dashboard-stats", isAuthenticated, async (req: any, res) => {
     try {
-      const transactions = await storage.getTransactions();
+      const userId = req.user.claims.sub;
+      const transactions = await storage.getTransactions(userId);
       const now = new Date();
       const currentMonth = now.getMonth();
       const currentYear = now.getFullYear();
